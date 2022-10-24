@@ -4,33 +4,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sounddevice as sd
 
-file_name="tono.wav"
+file_name="vowel_1.wav"
 fs,wav=wavfile.read(file_name)
 fs_resamp=2000000
 resamp_wav=scipy.signal.resample(wav,fs_resamp)
 
 resamp_n=len(resamp_wav)
 peaks=scipy.signal.find_peaks(resamp_wav)
-t_resamp=np.linspace(0,1,len(resamp_wav))
-t=np.linspace(0,1,len(wav))
+t_resamp=np.linspace(0,1,fs_resamp)
+t=np.linspace(0,1,fs)
 fc=85000
 #plt.plot(wav)
 #plt.show()
 
 ang1=np.multiply(t_resamp,2*np.pi*fc)
 c1=np.cos(ang1)
-ang2=np.multiply(t_resamp,2*np.pi*fc)+resamp_wav*2.5e-4
-c2=np.cos(ang2)
+#ang2=np.multiply(t_resamp,2*np.pi*fc)+resamp_wav*0.05e-3
+c2=(1+resamp_wav*0.05e-3)*np.cos(np.multiply(t_resamp,2*np.pi*fc))
 
 f0, Pxx_den0 = scipy.signal.periodogram(resamp_wav, fs_resamp)
 f1, Pxx_den1 = scipy.signal.periodogram(c1, fs_resamp)
 f2, Pxx_den2 = scipy.signal.periodogram(c2, fs_resamp)
 
 
-fig, axs = plt.subplots(3)
+fig, axs = plt.subplots(2)
 axs[0].semilogy(f0, Pxx_den0)
 axs[0].set_ylim([1, 1e9])
-axs[0].set_xlim([300, 700])
+axs[0].set_xlim([0, 2700])
 axs[0].set_xlabel('frequency [Hz]')
 axs[0].set_ylabel('PSD [V**2/Hz]')
 axs[0].grid()
@@ -42,19 +42,27 @@ axs[1].set_xlabel('frequency [Hz]')
 axs[1].set_ylabel('PSD [V**2/Hz]')
 axs[1].grid()
 
-axs[2].semilogy(f2, Pxx_den2)
-axs[2].set_ylim([1e-14, 1])
-axs[2].set_xlim([70e3, 100e3])
-axs[2].set_xlabel('frequency [Hz]')
-axs[2].set_ylabel('PSD [V**2/Hz]')
-axs[2].grid()
 
+
+
+fig, axs = plt.subplots(2)
+
+axs[0].semilogy(f2, Pxx_den2)
+axs[0].set_ylim([1e-14, 1])
+axs[0].set_xlim([70e3, 100e3])
+axs[0].set_xlabel('frequency [Hz]')
+axs[0].set_ylabel('PSD [V**2/Hz]')
+axs[0].grid()
+
+axs[1].plot(c2)
 
 plt.show()
 
 
 
-peaks_c=scipy.signal.find_peaks(c)
+
+peaks_c=scipy.signal.find_peaks(c1)
 print(peaks_c)
-#print(peaks)
+print(peaks[0])
+print(resamp_wav[4000])
 #print(resamp_n)
