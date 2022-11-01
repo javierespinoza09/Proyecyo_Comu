@@ -1,4 +1,5 @@
 import scipy.signal
+import scipy.integrate as integral
 from scipy.io import wavfile 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,7 +21,7 @@ fc=85000
 ang1=np.multiply(t_resamp,2*np.pi*fc)
 c1=np.cos(ang1)
 #ang2=np.multiply(t_resamp,2*np.pi*fc)+resamp_wav*0.05e-3
-c2=(1+resamp_wav*0.05e-3)*np.cos(np.multiply(t_resamp,2*np.pi*fc))
+c2=(1+resamp_wav*0.3e-3)*np.cos(np.multiply(t_resamp,2*np.pi*fc))
 
 f0, Pxx_den0 = scipy.signal.periodogram(resamp_wav, fs_resamp)
 f1, Pxx_den1 = scipy.signal.periodogram(c1, fs_resamp)
@@ -57,12 +58,23 @@ axs[0].grid()
 axs[1].plot(c2)
 
 plt.show()
+Ic=integral.simpson(Pxx_den1,f1)
+Is=integral.simpson(Pxx_den2,f2)
+print(Ic)
+print(Is)
+print((Is-Ic)/Is)
+print(len(Pxx_den2))
+print(f2)
+carry=0
+maxim=0
+for i in range(len(f2)):
+	if Pxx_den2[i]>maxim:
+		maxim=Pxx_den2[i]
+		carry=i
 
-
-
-
-peaks_c=scipy.signal.find_peaks(c1)
-print(peaks_c)
-print(peaks[0])
-print(resamp_wav[4000])
+print(carry)
+#peaks_c=scipy.signal.find_peaks(c1)
+#print(peaks_c)
+#print(peaks[0])
+#print(resamp_wav[4000])
 #print(resamp_n)
