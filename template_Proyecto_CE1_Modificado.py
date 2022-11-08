@@ -10,89 +10,101 @@ import sounddevice as sd
 #definicion de 3 bloques principales: TX, canal y RX
 
 def transmisor(x_t,fs_resamp):
-	fc1 = 75000
-	fc2 = 85000
-    	fc3 = 95000
+    fc1 = 75000
+    fc2 = 85000
+    fc3 = 95000
     	
-	A_xt = x_t[0,:]
-    	B_xt = x_t[1,:]
-    	C_xt = x_t[2,:]
+    A_xt = x_t[0,:]
+    B_xt = x_t[1,:]
+    C_xt = x_t[2,:]
 	
-	ang1=np.multiply(t_resamp,2*np.pi*fc1)
-	c1=np.cos(ang1)
-	ang2=np.multiply(t_resamp,2*np.pi*fc2)
-	c2=np.cos(ang2)
-	ang3=np.multiply(t_resamp,2*np.pi*fc3)
-	c3=np.cos(ang3)
+    ang1=np.multiply(t_resamp,2*np.pi*fc1)
+    c1=np.cos(ang1)
+    ang2=np.multiply(t_resamp,2*np.pi*fc2)
+    c2=np.cos(ang2)
+    ang3=np.multiply(t_resamp,2*np.pi*fc3)
+    c3=np.cos(ang3)
 	
-	sA=(A_xt*0.3e-3)*c1
-	sB=(B_xt*0.3e-3)*c2
-	sC=(C_xt*0.3e-3)*c3
-	
-	f4, Pxx_den4 = scipy.signal.periodogram(sA, fs_resamp)
-	f5, Pxx_den5 = scipy.signal.periodogram(sB, fs_resamp)
-	f6, Pxx_den6 = scipy.signal.periodogram(sC, fs_resamp)
+    sA=(A_xt*0.3e-3)*c1
+    sB=(B_xt*0.3e-3)*c2
+    sC=(C_xt*0.3e-3)*c3
+    s_t = sA + sB + sC
+    
+    
+    f4, Pxx_den4 = scipy.signal.periodogram(sA, fs_resamp)
+    f5, Pxx_den5 = scipy.signal.periodogram(sB, fs_resamp)
+    f6, Pxx_den6 = scipy.signal.periodogram(sC, fs_resamp)
+    f7, Pxx_den7 = scipy.signal.periodogram(s_t, fs_resamp)
 
-	fig, axs = plt.subplots(3)
-	axs[0].semilogy(f4, Pxx_den)
-	axs[0].set_ylim([1, 1e9])
-	axs[0].set_xlim([0, 2700])
-	axs[0].set_xlabel('frequency [Hz]')
-	axs[0].set_ylabel('PSD [V**2/Hz]')
-	axs[0].grid()
+    fig, axs = plt.subplots(4)
+    axs[0].semilogy(f4, Pxx_den4)
+    axs[0].set_ylim([1e-14, 1])
+    axs[0].set_xlim([70e3, 100e3])
+    axs[0].set_xlabel('frequency [Hz]')
+    axs[0].set_ylabel('PSD [V**2/Hz]')
+    axs[0].grid()
 
-	axs[1].semilogy(f5, Pxx_den5)
-	axs[1].set_ylim([1e-14, 1])
-	axs[1].set_xlim([70e3, 100e3])
-	axs[1].set_xlabel('frequency [Hz]')
-	axs[1].set_ylabel('PSD [V**2/Hz]')
-	axs[1].grid()
+    axs[1].semilogy(f5, Pxx_den5)
+    axs[1].set_ylim([1e-14, 1])
+    axs[1].set_xlim([70e3, 100e3])
+    axs[1].set_xlabel('frequency [Hz]')
+    axs[1].set_ylabel('PSD [V**2/Hz]')
+    axs[1].grid()
 	
-	axs[2].semilogy(f6, Pxx_den6)
-	axs[2].set_ylim([1e-14, 10e7])
-	axs[2].set_xlim([0, 5e3])
-	axs[2].set_xlabel('frequency [Hz]')
-	axs[2].set_ylabel('PSD [V**2/Hz]')
-	axs[2].grid()
+    axs[2].semilogy(f6, Pxx_den6)
+    axs[2].set_ylim([1e-14, 1])
+    axs[2].set_xlim([70e3, 100e3])
+    axs[2].set_xlabel('frequency [Hz]')
+    axs[2].set_ylabel('PSD [V**2/Hz]')
+    axs[2].grid()
+    
+    axs[3].semilogy(f7, Pxx_den7)
+    axs[3].set_ylim([1e-14, 10])
+    axs[3].set_xlim([70e3, 100e3])
+    axs[3].set_xlabel('frequency [Hz]')
+    axs[3].set_ylabel('PSD [V**2/Hz]')
+    axs[3].grid()
+    
+    
 
-	return s_t 
+    return s_t 
 
 def canal(s_t):
 
-	mu=0;
-	sigma=0.001;
-    	#Se simula un ruido gauseano
-    	wn = np.random.normal(loc = mu, scale = sigma, size = len(s_t))
-    	#Se agrega el ruido a la señal transmitida
-    	s_t_prima = s_t + wn
+    mu=0;
+    sigma=0.001;
+    #Se simula un ruido gauseano
+    wn = np.random.normal(loc = mu, scale = sigma, size = len(s_t))
+    #Se agrega el ruido a la señal transmitida
+    s_t_prima = s_t + wn
     
-    	f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
-    	f8, Pxx_den8 = scipy.signal.periodogram(s_t, fs_resamp)
+    f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
+    f8, Pxx_den8 = scipy.signal.periodogram(s_t, fs_resamp)
     
-    	fig, axs = plt.subplots(2)
-	axs[0].semilogy(f7, Pxx_den7)
-	axs[0].set_ylim([1, 1e9])
-	axs[0].set_xlim([0, 2700])
-	axs[0].set_xlabel('frequency [Hz]')
-	axs[0].set_ylabel('PSD [V**2/Hz]')
-	axs[0].grid()
+    fig, axs = plt.subplots(2)
+    axs[0].semilogy(f7, Pxx_den7)
+    axs[0].set_ylim([1e-14, 1])
+    axs[0].set_xlim([70e3, 100e3])
+    axs[0].set_xlabel('frequency [Hz]')
+    axs[0].set_ylabel('PSD [V**2/Hz]')
+    axs[0].grid()
 
-	axs[1].semilogy(f8, Pxx_den8)
-	axs[1].set_ylim([1e-14, 1])
-	axs[1].set_xlim([70e3, 100e3])
-	axs[1].set_xlabel('frequency [Hz]')
-	axs[1].set_ylabel('PSD [V**2/Hz]')
-	axs[1].grid()
+    axs[1].semilogy(f8, Pxx_den8)
+    axs[1].set_ylim([1e-14, 1])
+    axs[1].set_xlim([70e3, 100e3])
+    axs[1].set_xlabel('frequency [Hz]')
+    axs[1].set_ylabel('PSD [V**2/Hz]')
+    axs[1].grid()
 	
-    	plt.plot()
-    	return s_t_prima
+    plt.plot()
+    return s_t_prima
 
 
 def receptor(s_t_prima):
 
-	m_t_reconstruida=s_t_prima 
+    m_t_reconstruida=s_t_prima 
 
-    	return m_t_reconstruida
+    return m_t_reconstruida
 
 
 
@@ -123,10 +135,9 @@ x_t = np.array([resamp_A, resamp_B, resamp_C])
 f0, Pxx_den0 = scipy.signal.periodogram(resamp_A, fs_resamp)
 f1, Pxx_den1 = scipy.signal.periodogram(resamp_B, fs_resamp)
 f2, Pxx_den2 = scipy.signal.periodogram(resamp_C, fs_resamp)
-f3, Pxx_den3 = scipy.signal.periodogram(C_xt, fs_resamp)
 
 #Por medio de la librería matplotlib.pyplot se genera una impresión a escala logaritmica de la PDF de las señales 
-fig, axs = plt.subplots(4)
+fig, axs = plt.subplots(3)
 
 axs[0].semilogy(f0, Pxx_den0)
 axs[0].set_ylim([1e-14, 10e7])
@@ -149,12 +160,6 @@ axs[2].set_xlabel('frequency [Hz]')
 axs[2].set_ylabel('PSD [V**2/Hz]')
 axs[2].grid()
 
-axs[3].semilogy(f3, Pxx_den3)
-axs[3].set_ylim([1e-14, 10e7])
-axs[3].set_xlim([0, 5e3])
-axs[3].set_xlabel('frequency [Hz]')
-axs[3].set_ylabel('PSD [V**2/Hz]')
-axs[3].grid()
 
 
 s_t=transmisor(x_t,fs_resamp)
