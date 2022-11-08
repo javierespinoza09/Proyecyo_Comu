@@ -11,100 +11,141 @@ import sounddevice as sd
 #definicion de 3 bloques principales: TX, canal y RX
 
 def transmisor(x_t,fs_resamp):
-    fc1 = 75000
-    fc2 = 85000
-    fc3 = 95000
-    	
-    A_xt = x_t[0,:]
-    B_xt = x_t[1,:]
-    C_xt = x_t[2,:]
+	fc1 = 75000
+	fc2 = 85000
+	fc3 = 95000
 	
-    ang1=np.multiply(t_resamp,2*np.pi*fc1)
-    c1=np.cos(ang1)
-    ang2=np.multiply(t_resamp,2*np.pi*fc2)
-    c2=np.cos(ang2)
-    ang3=np.multiply(t_resamp,2*np.pi*fc3)
-    c3=np.cos(ang3)
+	A_xt = x_t[0,:]
+	B_xt = x_t[1,:]
+	C_xt = x_t[2,:]
 	
-    sA=(1+A_xt*0.3e-3)*c1
-    sB=(1+B_xt*0.3e-3)*c2
-    sC=(1+C_xt*0.3e-3)*c3
-    s_t = sA + sB + sC
-    
-    
-    f4, Pxx_den4 = scipy.signal.periodogram(sA, fs_resamp)
-    f5, Pxx_den5 = scipy.signal.periodogram(sB, fs_resamp)
-    f6, Pxx_den6 = scipy.signal.periodogram(sC, fs_resamp)
-    f7, Pxx_den7 = scipy.signal.periodogram(s_t, fs_resamp)
+	ang1=np.multiply(t_resamp,2*np.pi*fc1)
+	c1=np.cos(ang1)
+	ang2=np.multiply(t_resamp,2*np.pi*fc2)
+	c2=np.cos(ang2)
+	ang3=np.multiply(t_resamp,2*np.pi*fc3)
+	c3=np.cos(ang3)
+	
+	sA=(1+A_xt*0.3e-3)*c1
+	sB=(1+B_xt*0.3e-3)*c2
+	sC=(1+C_xt*0.3e-3)*c3
+	s_t = sA + sB + sC
 
-    fig, axs = plt.subplots(4)
-    axs[0].semilogy(f4, Pxx_den4)
-    axs[0].set_ylim([1e-14, 1])
-    axs[0].set_xlim([70e3, 100e3])
-    axs[0].set_xlabel('frequency [Hz]')
-    axs[0].set_ylabel('PSD [V**2/Hz]')
-    axs[0].grid()
-
-    axs[1].semilogy(f5, Pxx_den5)
-    axs[1].set_ylim([1e-14, 1])
-    axs[1].set_xlim([70e3, 100e3])
-    axs[1].set_xlabel('frequency [Hz]')
-    axs[1].set_ylabel('PSD [V**2/Hz]')
-    axs[1].grid()
-	
-    axs[2].semilogy(f6, Pxx_den6)
-    axs[2].set_ylim([1e-14, 1])
-    axs[2].set_xlim([70e3, 100e3])
-    axs[2].set_xlabel('frequency [Hz]')
-    axs[2].set_ylabel('PSD [V**2/Hz]')
-    axs[2].grid()
+	f1, Pxx_den1 = scipy.signal.periodogram(c1, fs_resamp)
+	I0 = scipy.integrate.simpson(Pxx_den1, f1)
+	f1, Pxx_den1 = scipy.signal.periodogram(c2, fs_resamp)
+	I1 = scipy.integrate.simpson(Pxx_den1, f1)
+	f1, Pxx_den1 = scipy.signal.periodogram(c3, fs_resamp)
+	I2 = scipy.integrate.simpson(Pxx_den1, f1)
     
-    axs[3].semilogy(f7, Pxx_den7)
-    axs[3].set_ylim([1e-14, 10])
-    axs[3].set_xlim([70e3, 100e3])
-    axs[3].set_xlabel('frequency [Hz]')
-    axs[3].set_ylabel('PSD [V**2/Hz]')
-    axs[3].grid()
+	f4, Pxx_den4 = scipy.signal.periodogram(sA, fs_resamp)
+	I3 = scipy.integrate.simpson(Pxx_den4, f4)
+	f5, Pxx_den5 = scipy.signal.periodogram(sB, fs_resamp)
+	I4 = scipy.integrate.simpson(Pxx_den5, f5)
+	f6, Pxx_den6 = scipy.signal.periodogram(sC, fs_resamp)
+	I5 = scipy.integrate.simpson(Pxx_den6, f6)
+	f7, Pxx_den7 = scipy.signal.periodogram(s_t, fs_resamp)
+
+	print('Eficiencia de Señal 1 = ', + (I3-I0)/I3)
+	print('Eficiencia de Señal 2 = ', + (I4-I1)/I4)
+	print('Eficiencia de Señal 3 = ', + (I5-I2)/I5)
+
+	
+	fig, axs = plt.subplots(4)
+	axs[0].semilogy(f4, Pxx_den4)
+	axs[0].set_title('Señales moduladas y s_t')
+	axs[0].set_ylim([1e-14, 1])
+	axs[0].set_xlim([70e3, 100e3])
+	axs[0].set_xlabel('frequency [Hz]')
+	axs[0].set_ylabel('PSD [V**2/Hz]')
+	axs[0].grid()
+
+	axs[1].semilogy(f5, Pxx_den5)
+	axs[1].set_ylim([1e-14, 1])
+	axs[1].set_xlim([70e3, 100e3])
+	axs[1].set_xlabel('frequency [Hz]')
+	axs[1].set_ylabel('PSD [V**2/Hz]')
+	axs[1].grid()
+		
+	axs[2].semilogy(f6, Pxx_den6)
+	axs[2].set_ylim([1e-14, 1])
+	axs[2].set_xlim([70e3, 100e3])
+	axs[2].set_xlabel('frequency [Hz]')
+	axs[2].set_ylabel('PSD [V**2/Hz]')
+	axs[2].grid()
+
+	axs[3].semilogy(f7, Pxx_den7)
+	axs[3].set_ylim([1e-14, 10])
+	axs[3].set_xlim([70e3, 100e3])
+	axs[3].set_xlabel('frequency [Hz]')
+	axs[3].set_ylabel('PSD [V**2/Hz]')
+	axs[3].grid()
     
     
     
     
     
    
-    return s_t 
+	return s_t 
 
 def canal(s_t):
 
-    mu=0;
-    sigma=0.001;
+	mu=0;
+	sigma=0.1;
     #Se simula un ruido gauseano
-    wn = np.random.normal(loc = mu, scale = sigma, size = len(s_t))
-    #Se agrega el ruido a la señal transmitida
-    s_t_prima = s_t + wn
-    
-    f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
-    f8, Pxx_den8 = scipy.signal.periodogram(s_t, fs_resamp)
-    
-    fig, axs = plt.subplots(2)
-    axs[0].semilogy(f7, Pxx_den7)
-    axs[0].set_ylim([1e-14, 1])
-    axs[0].set_xlim([70e3, 100e3])
-    axs[0].set_xlabel('frequency [Hz]')
-    axs[0].set_ylabel('PSD [V**2/Hz]')
-    axs[0].grid()
-
-    axs[1].semilogy(f8, Pxx_den8)
-    axs[1].set_ylim([1e-14, 1])
-    axs[1].set_xlim([70e3, 100e3])
-    axs[1].set_xlabel('frequency [Hz]')
-    axs[1].set_ylabel('PSD [V**2/Hz]')
-    axs[1].grid()
+	wn = np.random.normal(loc = mu, scale = sigma, size = len(s_t))
 	
-    plt.plot()
-    return s_t_prima
+	f6, Pxx_den6 = scipy.signal.periodogram(wn, len(s_t))
+	I0 = scipy.integrate.simpson(Pxx_den6, f6)
+    #Se agrega el ruido a la señal transmitida
+	s_t_prima = s_t + wn
+	fig, axs = plt.subplots(2)
+	axs[0].plot( wn)
+	axs[0].set_title('n(t)')
+	axs[0].grid()
+
+	axs[1].plot( s_t_prima)
+	axs[1].set_title('s(t) + n(t)')
+	axs[1].set_xlabel('timepo [s*fs]')
+	axs[1].grid()
+    
+    
+	f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
+    
+	f8, Pxx_den8 = scipy.signal.periodogram(s_t, fs_resamp)
+	I1 = scipy.integrate.simpson(Pxx_den8, f8)
+    
+	print('SNR del canal = ', + I1/I0)
+    
+	fig, axs = plt.subplots(3)
+	axs[0].semilogy(f8, Pxx_den8)
+	axs[0].set_title('s_t')
+	axs[0].set_ylim([1e-14, 1])
+	axs[0].set_xlim([70e3, 100e3])
+	axs[0].set_ylabel('PSD [V**2/Hz]')
+	axs[0].grid()
+
+	axs[1].semilogy(f6, Pxx_den6)
+	axs[1].set_title('noise')
+	axs[1].set_ylim([1e-14, 1])
+	axs[1].set_xlim([70e3, 100e3])
+	axs[1].set_ylabel('PSD [V**2/Hz]')
+	axs[1].grid()
+    
+	axs[2].semilogy(f7, Pxx_den7)
+	axs[2].set_title('s_t + noise')
+	axs[2].set_ylim([1e-14, 1])
+	axs[2].set_xlim([70e3, 100e3])
+	axs[2].set_xlabel('frequency [Hz]')
+	axs[2].set_ylabel('PSD [V**2/Hz]')
+	axs[2].grid()
+	
+
+	
+	return s_t_prima
+	
 
 #########################RECEPTOR######################
-
 
 def PLL(input_signal, Fs, lenght, N):
    zeta = .707  # damping factor
@@ -180,6 +221,7 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	carry_B = 0
 	carry_C = 0
 	f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
+	##SE BUSCAN LOS PUNTOS DE MAYOR POTENCIA PARA ASUMIRLOS COMO FRECUENCIA DE PORTADORA##
 	for i in range(len(Pxx_den7)):
 		if i>74e3 and i<76e3:
 			if Pxx_den7[i] > max_A:
@@ -201,17 +243,17 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	ang3=np.multiply(t_resamp,2*np.pi*carry_C)
 	c3=np.cos(ang3)
 	
+	
+	##FILTRO PASA BAJAS PARA CONSERVAR ÚNICAMENTE LA SEÑAL EN BANDA BASE##
 	singal_A_BB = scipy.signal.sosfilt(scipy.signal.butter(25, [10, 5e3], btype = 'bandpass', fs = fs_resamp, output='sos'), s_t_prima*c1)
 	singal_B_BB = scipy.signal.sosfilt(scipy.signal.butter(25, [10, 5e3], btype = 'bandpass', fs = fs_resamp, output='sos'), s_t_prima*c2)
 	singal_C_BB = scipy.signal.sosfilt(scipy.signal.butter(25, [10, 5e3], btype = 'bandpass', fs = fs_resamp, output='sos'), s_t_prima*c3)
 	
-	##FILTRO##
-	singal_A_BB_Filtered = scipy.signal.savgol_filter(singal_A_BB, 10, 3)
-	singal_B_BB_Filtered = scipy.signal.savgol_filter(singal_B_BB, 10, 3)
-	singal_C_BB_Filtered = scipy.signal.savgol_filter(singal_C_BB, 10, 3)
-	
-	
-	
+	##FILTRO DE MEDIA MOVIL CON EL FIN DE ELIMINAR EL RUIDO DE BANDA ANGOSTA##
+	signal_A_BB_Filtered = scipy.signal.savgol_filter(singal_A_BB, 10, 3)
+	signal_B_BB_Filtered = scipy.signal.savgol_filter(singal_B_BB, 10, 3)
+	signal_C_BB_Filtered = scipy.signal.savgol_filter(singal_C_BB, 10, 3)
+
     
 	f10, Pxx_den10 = scipy.signal.periodogram(singal_C_BB, fs_resamp)
 	f11, Pxx_den11 = scipy.signal.periodogram(singal_B_BB, fs_resamp)
@@ -241,17 +283,28 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	
 	
 	##DOWN SAMPLE##
-	fs_default = 24000
-	A_Recovered=scipy.signal.resample(singal_A_BB_Filtered,fs_default)
-	B_Recovered=scipy.signal.resample(singal_B_BB_Filtered,fs_default)
-	C_Recovered=scipy.signal.resample(singal_C_BB_Filtered,fs_default)
+	
+	A_Recovered=scipy.signal.resample(signal_A_BB_Filtered,5285)
+	B_Recovered=scipy.signal.resample(signal_B_BB_Filtered,6040)
+	C_Recovered=scipy.signal.resample(signal_C_BB_Filtered,6890)
 	
 	fig, axs = plt.subplots(3)
-	axs[0].plot(range(fs_default), A_Recovered)
-	axs[1].plot(range(fs_default), B_Recovered)
-	axs[2].plot(range(fs_default), C_Recovered)
+	axs[0].plot(range(5285), A_Recovered)
+	axs[0].set_title('Información Recuperada')
+	axs[1].plot(range(6040), B_Recovered)
+	axs[2].plot(range(6890), C_Recovered)
 	
+	return A_Recovered, B_Recovered, C_Recovered
+	
+def Save_Result(A_Recovered, B_Recovered, C_Recovered):
+	fs_default = 24000
 
+	wavfile.write('Result_vowel_1.wav', fs_default, A_Recovered)
+	wavfile.write('Result_vowel_2.wav', fs_default, B_Recovered)
+	wavfile.write('Result_vowel_3.wav', fs_default, C_Recovered)
+	
+	
+	
 
 ############################ Inicio de ejecucion #################################
 #Se importan los archivos .wav que serán la información 
@@ -264,6 +317,7 @@ fs,C=wavfile.read(file_name_C)
 print(fs)
 fig, axs = plt.subplots(3)
 axs[0].plot(range(len(A)), A)
+axs[0].set_title('Información Original')
 axs[1].plot(range(len(B)), B)
 axs[2].plot(range(len(C)), C)
 
@@ -316,9 +370,9 @@ s_t=transmisor(x_t,fs_resamp)
 
 s_t_prima=canal(s_t)
 
-receptor_LC(s_t_prima, fs_resamp, t_resamp)
+A_Recovered, B_Recovered, C_Recovered = receptor_LC(s_t_prima, fs_resamp, t_resamp)
 #receptor_PLL(s_t_prima,t_resamp)
-
+Save_Result(A_Recovered, B_Recovered, C_Recovered)
 
 plt.show()
 #llamar funcion de receptor
