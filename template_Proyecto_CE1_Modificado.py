@@ -296,7 +296,7 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	
 	return A_Recovered, B_Recovered, C_Recovered
 	
-def Save_Result(A_Recovered, B_Recovered, C_Recovered):
+def Save_Result(A_Recovered, B_Recovered, C_Recovered): ##SE ALMACENAN LAS SEÑALES RECONSTRUIDAS EN ARCHIVOS .wav##
 	fs_default = 24000
 
 	wavfile.write('Result_vowel_1.wav', fs_default, A_Recovered)
