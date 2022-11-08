@@ -201,25 +201,6 @@ axs[2].set_xlabel('frequency [Hz]')
 axs[2].set_ylabel('PSD [V**2/Hz]')
 axs[2].grid()
 
-b, a = scipy.signal.butter(20, 1000, 'low', analog=True)
-y = scipy.signal.filtfilt(b, a, singal_A_BB, axis=0)
-
-f12, Pxx_den12 = scipy.signal.periodogram(y, fs_resamp)
-fig, axs = plt.subplots(2)
-axs[0].semilogy(f12, Pxx_den12)
-axs[0].set_ylim([1e-14, 10])
-axs[0].set_xlim([0, 10e3])
-axs[0].set_xlabel('frequency [Hz]')
-axs[0].set_ylabel('PSD [V**2/Hz]')
-axs[0].grid()
-
-axs[1].semilogy(f11, Pxx_den11)
-axs[1].set_ylim([1e-14, 10])
-axs[1].set_xlim([0, 10e3])
-axs[1].set_xlabel('frequency [Hz]')
-axs[1].set_ylabel('PSD [V**2/Hz]')
-axs[1].grid()
-
 
 
 plt.show()

@@ -166,18 +166,19 @@ def receptor(s_t_prima):
 	
 	f9, Pxx_den9 = scipy.signal.periodogram(s_t_prima, fs_resamp)
 	
-    	for i in rango_A:
-    		if (Pxx_den9[i]>carry_A):
-    			carry_A = s_t_prima[i]
-    	print("Portadora A = ", carry_A)
-    	for i in rango_B:
-    		if (Pxx_den9[i]>carry_B):
-    			carry_B = s_t_prima[i]
-    	print("Portadora B = ", carry_B)
-    	for i in rango_C:
-    		if (Pxx_den9[i]>carry_C):
-    			carry_C = s_t_prima[i]
-    	print("Portadora C = ", carry_C)
+    	for i in range(len(Pxx_den7)):
+		if i>74e3 and i<76e3:
+			if Pxx_den7[i] > max_A:
+				max_A = Pxx_den7[i]
+				carry_A = i
+		elif i>84e3 and i<86e3:
+			if Pxx_den7[i] > max_B:
+				max_B = Pxx_den7[i]
+				carry_B = i
+		elif i>94e3 and i<96e3:
+			if Pxx_den7[i] > max_C:
+				max_C = Pxx_den7[i]
+				carry_C = i
     	
     	
     	ang1=np.multiply(t_resamp,2*np.pi*carry_A)
