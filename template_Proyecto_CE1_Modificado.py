@@ -216,9 +216,8 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	f10, Pxx_den10 = scipy.signal.periodogram(singal_C_BB, fs_resamp)
 	f11, Pxx_den11 = scipy.signal.periodogram(singal_B_BB, fs_resamp)
 	f12, Pxx_den12 = scipy.signal.periodogram(singal_A_BB, fs_resamp)
-	f13, Pxx_den13 = scipy.signal.periodogram(singal_A_BB_Filtered, fs_resamp)
 
-	fig, axs = plt.subplots(4)
+	fig, axs = plt.subplots(3)
 	axs[0].semilogy(f10, Pxx_den10)
 	axs[0].set_ylim([1e-14, 10])
 	axs[0].set_xlim([0, 10e3])
@@ -240,12 +239,6 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	axs[2].set_ylabel('PSD [V**2/Hz]')
 	axs[2].grid()
 	
-	axs[3].semilogy(f13, Pxx_den13)
-	axs[3].set_ylim([1e-14, 10])
-	axs[3].set_xlim([0, 10e3])
-	axs[3].set_xlabel('frequency [Hz]')
-	axs[3].set_ylabel('PSD [V**2/Hz]')
-	axs[3].grid()
 	
 	##DOWN SAMPLE##
 	fs_default = 24000
@@ -323,8 +316,8 @@ s_t=transmisor(x_t,fs_resamp)
 
 s_t_prima=canal(s_t)
 
-#receptor_LC(s_t_prima, fs_resamp, t_resamp)
-receptor_PLL(s_t_prima,t_resamp)
+receptor_LC(s_t_prima, fs_resamp, t_resamp)
+#receptor_PLL(s_t_prima,t_resamp)
 
 
 plt.show()
