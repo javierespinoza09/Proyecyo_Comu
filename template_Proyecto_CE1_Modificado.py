@@ -147,7 +147,7 @@ def canal(s_t):
 
 #########################RECEPTOR######################
 
-def PLL(input_signal, Fs, lenght, N):
+def PLL(input_signal, Fs, lenght, N):   # Esta función funciona para ondas FM, sin embargo parte de la idea era reciclar el NCO para hacer el PLL costas, pero no lo logramos
    zeta = .707  # damping factor
    k = 1
    Bn = 0.01*Fs  #Noise Bandwidth
