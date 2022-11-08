@@ -86,11 +86,11 @@ def transmisor(x_t,fs_resamp):
 	ang2=np.multiply(t_resamp,2*np.pi*fc2)
 	c2=np.cos(ang2)
 	ang3=np.multiply(t_resamp,2*np.pi*fc3)
-	c2=np.cos(ang2)
+	c3=np.cos(ang3)
 	
-	sA=(1+A_xt*0.3e-3)*c2
+	sA=(1+A_xt*0.3e-3)*c1
 	sB=(1+B_xt*0.3e-3)*c2
-	sC=(1+C_xt*0.3e-3)*c2
+	sC=(1+C_xt*0.3e-3)*c3
 	
 	f4, Pxx_den4 = scipy.signal.periodogram(sA, fs_resamp)
 	f5, Pxx_den5 = scipy.signal.periodogram(sB, fs_resamp)
@@ -129,16 +129,69 @@ def canal(s_t):
     #Note que los parámetros mu (media) y sigma (desviacion) del ruido blanco Gaussiano deben cambiarse segun especificaciones
     mu=0;
     sigma=0.001;
+    #Se simula un ruido gauseano
+    wn = np.random.normal(loc = mu, scale = sigma, size = len(s_t))
+    #Se agrega el ruido a la señal transmitida
+    s_t_prima = s_t + wn
     
-    #Su codigo para el canal va aca. 
+    f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
+    f8, Pxx_den8 = scipy.signal.periodogram(s_t, fs_resamp)
     
-    s_t_prima=s_t #eliminar cuando se tenga solucion propuesta
-    
+    fig, axs = plt.subplots(2)
+	axs[0].semilogy(f7, Pxx_den7)
+	axs[0].set_ylim([1, 1e9])
+	axs[0].set_xlim([0, 2700])
+	axs[0].set_xlabel('frequency [Hz]')
+	axs[0].set_ylabel('PSD [V**2/Hz]')
+	axs[0].grid()
+
+	axs[1].semilogy(f8, Pxx_den8)
+	axs[1].set_ylim([1e-14, 1])
+	axs[1].set_xlim([70e3, 100e3])
+	axs[1].set_xlabel('frequency [Hz]')
+	axs[1].set_ylabel('PSD [V**2/Hz]')
+	axs[1].grid()
+	
+    plt.plot()
     return s_t_prima
 
 
-def receptor(s_t_prima,f_rf):
+def receptor(s_t_prima):
+	rango_A = np.linspace(74e3, 76e3, 2000)
+	rango_B = np.linspace(84e3, 86e3, 2000)
+	rango_C = np.linspace(94e3, 96e3, 2000)
+	carry_A = 0
+	carry_B = 0
+	carry_C = 0
+	
+	f9, Pxx_den9 = scipy.signal.periodogram(s_t_prima, fs_resamp)
+	
+    	for i in rango_A:
+    		if (Pxx_den9[i]>carry_A):
+    			carry_A = s_t_prima[i]
+    	print("Portadora A = ", carry_A)
+    	for i in rango_B:
+    		if (Pxx_den9[i]>carry_B):
+    			carry_B = s_t_prima[i]
+    	print("Portadora B = ", carry_B)
+    	for i in rango_C:
+    		if (Pxx_den9[i]>carry_C):
+    			carry_C = s_t_prima[i]
+    	print("Portadora C = ", carry_C)
+    	
+    	
+    	ang1=np.multiply(t_resamp,2*np.pi*carry_A)
+	c1=np.cos(ang1)
+	ang2=np.multiply(t_resamp,2*np.pi*carry_B)
+	c2=np.cos(ang2)
+	ang3=np.multiply(t_resamp,2*np.pi*carry_C)
+	c2=np.cos(ang2)
+    	
+    	singal_A_BB = s_t_prima*c1
+    	singal_B_BB = s_t_prima*c2
+    	singal_C_BB = s_t_prima*c3
     
+    	
     # Note que f_rf es la frecuencia utilizada para la seleccionar la señal que se desea demodular
     
     #Su codigo para el receptor va aca  

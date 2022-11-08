@@ -106,4 +106,120 @@ axs[3].set_xlabel('frequency [Hz]')
 axs[3].set_ylabel('PSD [V**2/Hz]')
 axs[3].grid()
 
+mu=0;
+sigma=0.001;
+    #Se simula un ruido gauseano
+wn = np.random.normal(loc = mu, scale = sigma, size = len(s_t))
+    #Se agrega el ruido a la señal transmitida
+s_t_prima = s_t + wn
+    
+f7, Pxx_den7 = scipy.signal.periodogram(s_t_prima, fs_resamp)
+f8, Pxx_den8 = scipy.signal.periodogram(s_t, fs_resamp)
+    
+fig, axs = plt.subplots(2)
+axs[0].semilogy(f7, Pxx_den7)
+axs[0].set_ylim([1e-17, 10])
+axs[0].set_xlim([70e3, 100e3])
+axs[0].set_xlabel('frequency [Hz]')
+axs[0].set_ylabel('PSD [V**2/Hz]')
+axs[0].grid()
+
+axs[1].semilogy(f8, Pxx_den8)
+axs[1].set_ylim([1e-14, 1])
+axs[1].set_xlim([70e3, 100e3])
+axs[1].set_xlabel('frequency [Hz]')
+axs[1].set_ylabel('PSD [V**2/Hz]')
+axs[1].grid()
+
+frec_range_A = np.arange(74e3, 76e3, 1)
+frec_range_B = np.arange(84e3, 86e3, 1)
+frec_range_C = np.arange(94e3, 96e3, 1)
+
+
+max_A = 0
+max_B = 0
+max_C = 0
+carry_A = 0
+carry_B = 0
+carry_C = 0
+	
+
+	
+for i in range(len(Pxx_den7)):
+	if i>74e3 and i<76e3:
+		if Pxx_den7[i] > max_A:
+			max_A = Pxx_den7[i]
+			carry_A = i
+	elif i>84e3 and i<86e3:
+		if Pxx_den7[i] > max_B:
+			max_B = Pxx_den7[i]
+			carry_B = i
+	elif i>94e3 and i<96e3:
+		if Pxx_den7[i] > max_C:
+			max_C = Pxx_den7[i]
+			carry_C = i
+			
+
+    	
+print(carry_A) 	
+print(carry_B) 
+print(carry_C) 
+ang1=np.multiply(t_resamp,2*np.pi*carry_A)
+c1=np.cos(ang1)
+ang2=np.multiply(t_resamp,2*np.pi*carry_B)
+c2=np.cos(ang2)
+ang3=np.multiply(t_resamp,2*np.pi*carry_C)
+c2=np.cos(ang2)
+
+singal_A_BB = s_t_prima*c1
+singal_B_BB = s_t_prima*c2
+singal_C_BB = s_t_prima*c3
+
+f10, Pxx_den10 = scipy.signal.periodogram(singal_A_BB, fs_resamp)
+f11, Pxx_den11 = scipy.signal.periodogram(singal_B_BB, fs_resamp)
+f12, Pxx_den12 = scipy.signal.periodogram(singal_C_BB, fs_resamp)
+
+fig, axs = plt.subplots(3)
+axs[0].semilogy(f10, Pxx_den10)
+axs[0].set_ylim([1e-14, 10])
+axs[0].set_xlim([0, 10e3])
+axs[0].set_xlabel('frequency [Hz]')
+axs[0].set_ylabel('PSD [V**2/Hz]')
+axs[0].grid()
+
+axs[1].semilogy(f11, Pxx_den11)
+axs[1].set_ylim([1e-14, 10])
+axs[1].set_xlim([0, 10e3])
+axs[1].set_xlabel('frequency [Hz]')
+axs[1].set_ylabel('PSD [V**2/Hz]')
+axs[1].grid()
+	
+axs[2].semilogy(f12, Pxx_den12)
+axs[2].set_ylim([1e-14, 10])
+axs[2].set_xlim([0, 10e3])
+axs[2].set_xlabel('frequency [Hz]')
+axs[2].set_ylabel('PSD [V**2/Hz]')
+axs[2].grid()
+
+b, a = scipy.signal.butter(20, 1000, 'low', analog=True)
+y = scipy.signal.filtfilt(b, a, singal_A_BB, axis=0)
+
+f12, Pxx_den12 = scipy.signal.periodogram(y, fs_resamp)
+fig, axs = plt.subplots(2)
+axs[0].semilogy(f12, Pxx_den12)
+axs[0].set_ylim([1e-14, 10])
+axs[0].set_xlim([0, 10e3])
+axs[0].set_xlabel('frequency [Hz]')
+axs[0].set_ylabel('PSD [V**2/Hz]')
+axs[0].grid()
+
+axs[1].semilogy(f11, Pxx_den11)
+axs[1].set_ylim([1e-14, 10])
+axs[1].set_xlim([0, 10e3])
+axs[1].set_xlabel('frequency [Hz]')
+axs[1].set_ylabel('PSD [V**2/Hz]')
+axs[1].grid()
+
+
+
 plt.show()
