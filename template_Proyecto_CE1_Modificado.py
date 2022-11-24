@@ -9,6 +9,33 @@ import sounddevice as sd
 
 
 #definicion de 3 bloques principales: TX, canal y RX
+def transmisor_tono(tono,fs_resamp):
+	fc = 85000
+	ang=np.multiply(t_resamp,2*np.pi*fc)
+	c=np.cos(ang)
+	s_tone=(1+tono*4e-5)*c
+	
+	f1, Pxx_den1 = scipy.signal.periodogram(c, fs_resamp)
+	I0 = scipy.integrate.simpson(Pxx_den1, f1)
+	f2, Pxx_den2 = scipy.signal.periodogram(s_tone, fs_resamp)
+	I1 = scipy.integrate.simpson(Pxx_den2, f2)
+	
+	fig, axs = plt.subplots(2)
+	axs[0].semilogy(f1, Pxx_den1)
+	axs[0].set_ylim([1e-14, 1])
+	axs[0].set_xlim([70e3, 100e3])
+	axs[0].set_xlabel('frequency [Hz]')
+	axs[0].set_ylabel('PSD [V**2/Hz]')
+	axs[0].grid()
+
+	axs[1].semilogy(f2, Pxx_den2)
+	axs[1].set_ylim([1e-14, 1])
+	axs[1].set_xlim([70e3, 100e3])
+	axs[1].set_xlabel('frequency [Hz]')
+	axs[1].set_ylabel('PSD [V**2/Hz]')
+	axs[1].grid()
+	
+	print("Eficiencia del tono",+(I1-I0)/(2*I1))	
 
 def transmisor(x_t,fs_resamp):
 	fc1 = 75000
@@ -19,6 +46,22 @@ def transmisor(x_t,fs_resamp):
 	B_xt = x_t[1,:]
 	C_xt = x_t[2,:]
 	
+	fig, axs = plt.subplots(3)
+	axs[0].plot(A_xt)
+	axs[0].set_xlabel('frequency [Hz]')
+	axs[0].set_ylabel('PSD [V**2/Hz]')
+	axs[0].grid()
+
+	axs[1].plot(B_xt)
+	axs[1].set_xlabel('frequency [Hz]')
+	axs[1].set_ylabel('PSD [V**2/Hz]')
+	axs[1].grid()
+	
+	axs[2].plot(C_xt)
+	axs[2].set_xlabel('Tiempo')
+	axs[2].set_ylabel('PSD [V**2/Hz]')
+	axs[2].grid()
+	
 	ang1=np.multiply(t_resamp,2*np.pi*fc1)
 	c1=np.cos(ang1)
 	ang2=np.multiply(t_resamp,2*np.pi*fc2)
@@ -26,9 +69,9 @@ def transmisor(x_t,fs_resamp):
 	ang3=np.multiply(t_resamp,2*np.pi*fc3)
 	c3=np.cos(ang3)
 	
-	sA=(1+A_xt*0.3e-3)*c1
-	sB=(1+B_xt*0.3e-3)*c2
-	sC=(1+C_xt*0.3e-3)*c3
+	sA=(1+A_xt*3e-5)*c1
+	sB=(1+B_xt*3e-5)*c2
+	sC=(1+C_xt*3e-5)*c3
 	s_t = sA + sB + sC
 
 	f1, Pxx_den1 = scipy.signal.periodogram(c1, fs_resamp)
@@ -46,14 +89,13 @@ def transmisor(x_t,fs_resamp):
 	I5 = scipy.integrate.simpson(Pxx_den6, f6)
 	f7, Pxx_den7 = scipy.signal.periodogram(s_t, fs_resamp)
 
-	print('Eficiencia de Señal 1 = ', + (I3-I0)/I3)
-	print('Eficiencia de Señal 2 = ', + (I4-I1)/I4)
-	print('Eficiencia de Señal 3 = ', + (I5-I2)/I5)
+	print('Eficiencia de Señal 1 = ', + (I3-I0)/(2*I3))
+	print('Eficiencia de Señal 2 = ', + (I4-I1)/(2*I4))
+	print('Eficiencia de Señal 3 = ', + (I5-I2)/(2*I5))
 
 	
 	fig, axs = plt.subplots(4)
 	axs[0].semilogy(f4, Pxx_den4)
-	axs[0].set_title('Señales moduladas y s_t')
 	axs[0].set_ylim([1e-14, 1])
 	axs[0].set_xlim([70e3, 100e3])
 	axs[0].set_xlabel('frequency [Hz]')
@@ -86,7 +128,7 @@ def transmisor(x_t,fs_resamp):
     
     
    
-	return s_t 
+	return s_t, I3, I4, I5
 
 def canal(s_t):
 
@@ -250,9 +292,9 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	singal_C_BB = scipy.signal.sosfilt(scipy.signal.butter(25, [10, 5e3], btype = 'bandpass', fs = fs_resamp, output='sos'), s_t_prima*c3)
 	
 	##FILTRO DE MEDIA MOVIL CON EL FIN DE ELIMINAR EL RUIDO DE BANDA ANGOSTA##
-	signal_A_BB_Filtered = scipy.signal.savgol_filter(singal_A_BB, 10, 3)
-	signal_B_BB_Filtered = scipy.signal.savgol_filter(singal_B_BB, 10, 3)
-	signal_C_BB_Filtered = scipy.signal.savgol_filter(singal_C_BB, 10, 3)
+	signal_A_BB_Filtered = scipy.signal.savgol_filter(singal_A_BB, 5, 2)
+	signal_B_BB_Filtered = scipy.signal.savgol_filter(singal_B_BB, 5, 2)
+	signal_C_BB_Filtered = scipy.signal.savgol_filter(singal_C_BB, 5, 2)
 
     
 	f10, Pxx_den10 = scipy.signal.periodogram(singal_C_BB, fs_resamp)
@@ -288,6 +330,10 @@ def receptor_LC(s_t_prima, fs_resamp, t_resamp):
 	B_Recovered=scipy.signal.resample(signal_B_BB_Filtered,6040)
 	C_Recovered=scipy.signal.resample(signal_C_BB_Filtered,6890)
 	
+	A_Recovered=A_Recovered*100
+	B_Recovered=B_Recovered*100
+	C_Recovered=C_Recovered*100
+	
 	fig, axs = plt.subplots(3)
 	axs[0].plot(range(5285), A_Recovered)
 	axs[0].set_title('Información Recuperada')
@@ -303,7 +349,17 @@ def Save_Result(A_Recovered, B_Recovered, C_Recovered): ##SE ALMACENAN LAS SEÑA
 	wavfile.write('Result_vowel_2.wav', fs_default, B_Recovered)
 	wavfile.write('Result_vowel_3.wav', fs_default, C_Recovered)
 	
+def Efficiency(A_Recovered, B_Recovered, C_Recovered, I3, I4, I5):
+	f4, Pxx_den4 = scipy.signal.periodogram(A_Recovered, fs_resamp)
+	I0 = scipy.integrate.simpson(Pxx_den4, f4)
+	f5, Pxx_den5 = scipy.signal.periodogram(B_Recovered, fs_resamp)
+	I1 = scipy.integrate.simpson(Pxx_den5, f5)
+	f6, Pxx_den6 = scipy.signal.periodogram(C_Recovered, fs_resamp)
+	I2 = scipy.integrate.simpson(Pxx_den6, f6)
 	
+	print('Eficiencia REAL de Señal 1 = ', + I0/I3)
+	print('Eficiencia REAL de Señal 2 = ', + I1/I4)
+	print('Eficiencia REAL de Señal 3 = ', + I2/I5)
 	
 
 ############################ Inicio de ejecucion #################################
@@ -311,9 +367,11 @@ def Save_Result(A_Recovered, B_Recovered, C_Recovered): ##SE ALMACENAN LAS SEÑA
 file_name_A="vowel_1.wav"		
 file_name_B="vowel_2.wav"
 file_name_C="vowel_3.wav"
+file_name_Tone="tono.wav"
 fs,A=wavfile.read(file_name_A)
 fs,B=wavfile.read(file_name_B)
 fs,C=wavfile.read(file_name_C)
+fs,tono=wavfile.read(file_name_Tone)
 print(fs)
 fig, axs = plt.subplots(3)
 axs[0].plot(range(len(A)), A)
@@ -327,10 +385,12 @@ t_resamp=np.linspace(0,1,fs_resamp)
 resamp_A=scipy.signal.resample(A,fs_resamp)
 resamp_B=scipy.signal.resample(B,fs_resamp)
 resamp_C=scipy.signal.resample(C,fs_resamp)
+resamp_tono=scipy.signal.resample(tono,fs_resamp)
 
 resamp_A = np.array(resamp_A)
 resamp_B = np.array(resamp_B)
 resamp_C = np.array(resamp_C)
+resamp_tono = np.array(resamp_tono)
 
 #Se crea un array con los datos con la frecuencia de muestreo modificada
 x_t = np.array([resamp_A, resamp_B, resamp_C])
@@ -364,9 +424,9 @@ axs[2].set_xlabel('frequency [Hz]')
 axs[2].set_ylabel('PSD [V**2/Hz]')
 axs[2].grid()
 
+transmisor_tono(resamp_tono,fs_resamp)
 
-
-s_t=transmisor(x_t,fs_resamp)
+s_t, I3, I4, I5=transmisor(x_t,fs_resamp)
 
 s_t_prima=canal(s_t)
 
@@ -374,6 +434,7 @@ A_Recovered, B_Recovered, C_Recovered = receptor_LC(s_t_prima, fs_resamp, t_resa
 #receptor_PLL(s_t_prima,t_resamp)
 Save_Result(A_Recovered, B_Recovered, C_Recovered)
 
+Efficiency(A_Recovered, B_Recovered, C_Recovered, I3, I4, I5)
 plt.show()
 #llamar funcion de receptor
 #m_t_reconstruida=receptor(s_t_prima)
